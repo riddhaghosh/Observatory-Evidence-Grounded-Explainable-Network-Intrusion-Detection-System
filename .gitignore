@@ -1,5 +1,7 @@
+# Secrets
 .env
 .env.*
+!.env.example
 
 # Virtual environments
 venv/
@@ -10,21 +12,20 @@ ENV/
 __pycache__/
 *.py[cod]
 
-# PyInstaller & build outputs
+# Build outputs
 build/
 dist/
-*.spec
-*.toc
-*.pkg
 
 # Logs
 *.log
-# Large datasets
+
+# Large data (generated or downloaded separately)
 dataset/
 *.csv
 *.pcap
 
-# Model caches and embeddings
+# Generated vector DB and model caches
+rag/chroma_db/
 model_cache/
 *.onnx
 *.bin
