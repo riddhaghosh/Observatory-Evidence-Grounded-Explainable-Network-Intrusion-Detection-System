@@ -1,0 +1,32 @@
+.env
+.env.*
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# PyInstaller & build outputs
+build/
+dist/
+*.spec
+*.toc
+*.pkg
+
+# Logs
+*.log
+# Large datasets
+dataset/
+*.csv
+*.pcap
+
+# Model caches and embeddings
+model_cache/
+*.onnx
+*.bin
+*.pt
+*.safetensors
