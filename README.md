@@ -1,127 +1,101 @@
-# AI Network Intrusion Detection System (AI-NIDS)
+# 🛡️ Observatory: Evidence-Grounded Explainable Network Intrusion Detection
 
-An AI-powered network security dashboard combining ML-based detection,
-rule-based aggregate detectors (port scan, brute-force, DoS), and
-RAG+LLM-generated explanations grounded in MITRE ATT&CK.
+Observatory captures live traffic on your Windows PC, detects **port scans, brute-force attempts and DoS floods**, and explains every alert in plain English using **MITRE ATT&CK**. It combines:
 
-## Quick Start
+- **ML detection:** Random Forest, XGBoost and SVM models trained on CICIDS2017 (pre-trained models included).
+- **Rule-based aggregate detectors:** port scan, brute force, DoS flood.
+- **RAG + LLM explanations:** the LLM may cite only MITRE technique IDs that appear in the retrieved documents.
+- **A Streamlit dashboard** with live threat level, charts, alert tables and AI explanations (times in IST).
 
-1. **Install Python 3.11** from https://python.org (check "Add to PATH")
-2. **Install Npcap** from https://npcap.com (required for packet capture)
-3. **Double-click `setup.bat`** — installs everything, asks for a free Groq API key
-   (get one at https://console.groq.com/keys, takes 2 minutes)
-4. **Double-click `run.bat`** — starts capture (approve the Administrator prompt)
-   and opens the dashboard in your browser
-
-## What works out of the box
-- **Live Monitor tab**: real-time traffic capture, ML detection, port-scan/
-  brute-force/DoS rule-based detection, AI-generated MITRE-grounded explanations
-- Pre-trained models included — no training required
-
-## What's not included
-- The full CICIDS2017 dataset (too large to distribute) — the Historical
-  Analysis tab will show a notice instead of crashing
-
-## Requirements
-- Windows 10/11
-- Administrator privileges (for packet capture only)
-- A free Groq API key (for AI explanations)
-# AI-NIDS-RAG: Network Intrusion Detection with AI-Explained Alerts
-
-A network intrusion detection system that captures live traffic on your Windows PC, detects port scans, brute-force attempts and DoS floods, and explains every alert in plain English using MITRE ATT&CK.
-
-**What it does**
-
-1. Captures live packets (Scapy + Npcap) and turns them into flow records.
-2. Detects attacks with three rule detectors (port scan, brute force, DoS flood) and ML models (Random Forest, XGBoost, SVM) trained on CICIDS2017.
-3. Explains each alert with a RAG + LLM pipeline that may cite only MITRE ATT&CK technique IDs found in the retrieved documents.
-4. Shows everything on a Streamlit dashboard (times in IST).
-
-> **Why it is different:** the ML models score about 99% F1 on CICIDS2017 but detected at most 5.2% of attacks launched live from a separate Kali VM. The rule detectors close that gap, and the alert explanations are tied to retrievable evidence.
+> **Why it is different:** the ML models score about 99% F1 on CICIDS2017 but detected at most 5.2% of attacks launched live from a separate Kali VM. The rule detectors close that gap, and every explanation is tied to retrievable evidence.
 
 ---
 
-## 1. Requirements
+## Quick start (recommended)
+
+**1. Install the prerequisites**
 
 | Requirement | Notes |
 |---|---|
-| Windows 10/11 | Live capture is built for Windows |
-| Python **3.11** | Not 3.12+ (package compatibility). Check with `py -3.11 --version` |
-| [Npcap](https://npcap.com/) | During install, tick **"Install Npcap in WinPcap API-compatible Mode"** |
-| Administrator rights | Needed for packet capture |
-| Internet (first run) | Downloads the embedding model once |
-| Free [Groq](https://console.groq.com) API key | For the AI explanations |
+| Windows 10 / 11 | Live capture is built for Windows |
+| [Python 3.11](https://www.python.org/downloads/) | Tick **"Add python.exe to PATH"** during install. Use 3.11 specifically (not 3.12+) |
+| [Npcap](https://npcap.com/) | Tick **"Install Npcap in WinPcap API-compatible Mode"** |
+| Free [Groq API key](https://console.groq.com/keys) | Used for the AI explanations (takes about 2 minutes to create) |
+| Internet on first run | The embedding model downloads once |
 
-Optional, only for testing attacks: a Kali Linux VM on the same network.
+**2. Download the project**
 
-## 2. Install (one time)
-
-Open PowerShell and run:
+Either click **Code → Download ZIP** on GitHub and extract it, or:
 
 ```powershell
 git clone https://github.com/<your-username>/<repo-name>.git
 cd <repo-name>
+```
+
+Extract it to a short folder path such as `C:\Observatory` or your Desktop.
+
+**3. Double-click `setup.bat`** (one time). It creates a virtual environment, installs the packages and asks for your Groq API key.
+
+**4. Double-click `run.bat`** and approve the Administrator prompt. It starts packet capture and opens the dashboard at <http://localhost:8501>. Open the **Live Monitor** tab.
+
+That's it. Browse the web or run a scan against the PC, then click **🔄 Refresh live feed**.
+
+---
+
+## Run in VS Code (or any terminal)
+
+**1. Open the project.** Install [VS Code](https://code.visualstudio.com/) and its **Python** extension, then choose **File → Open Folder** and select the project folder.
+
+**2. Create the environment** (one time). Open **Terminal → New Terminal** and run:
+
+```powershell
 py -3.11 -m venv venv
 .\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
 
-Or simply double-click **`setup.bat`**, which does the same.
+If PowerShell blocks the script, run `Set-ExecutionPolicy RemoteSigned -Scope CurrentUser` once, then repeat the activate line.
 
-If PowerShell blocks the activate script, run this once:
+**3. Select the interpreter.** Press `Ctrl+Shift+P`, choose **Python: Select Interpreter**, and pick the one inside `.\venv`.
 
-```powershell
-Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-```
-
-## 3. Add your API key
-
-1. Copy `.env.example` to a new file named `.env`.
-2. Edit it so it contains:
+**4. Add your API key.** Copy `.env.example` to a new file named `.env` and edit it:
 
 ```
 GROQ_API_KEY=your_key_here
 ```
 
-Never share or upload `.env`.
+Never share or commit `.env`.
 
-## 4. Build the knowledge base (one time)
+**5. Build the knowledge base** (one time):
 
 ```powershell
 python rag\build_knowledge_base.py
 ```
 
-This indexes the MITRE ATT&CK documents in `rag/documents/mitre_attack/`. If you edit those documents later, delete `rag/chroma_db` and run it again (stop Streamlit first).
-
-## 5. Run
-
-You need **two windows**.
-
-**Window 1: PowerShell as Administrator** (right-click, Run as administrator):
+**6. Start packet capture as Administrator.** Capture needs admin rights. Either start VS Code with *Run as administrator*, or open a separate **PowerShell as Administrator**:
 
 ```powershell
-cd <repo-name>
-.\venv\Scripts\Activate.ps1
-python packet_capture\capture_v2.py
+cd <project-folder>
+.\venv\Scripts\python.exe packet_capture\capture_v2.py
 ```
 
-It prints the interfaces it is listening on. Leave it running.
+It lists the interfaces it listens on. Leave it running.
 
-**Window 2: normal PowerShell:**
+**7. Start the dashboard** in a normal VS Code terminal:
 
 ```powershell
-cd <repo-name>
-.\venv\Scripts\Activate.ps1
 streamlit run dashboard\app.py
 ```
 
-The dashboard opens at <http://localhost:8501>. Open the **Live Monitor** tab.
+If `streamlit` is not recognised, use `.\venv\Scripts\python.exe -m streamlit run dashboard\app.py`. The dashboard opens at <http://localhost:8501>.
 
-Shortcut: **`run.bat`** starts both (run it as Administrator).
+> **Moved or renamed the folder?** A virtual environment can't be moved. Delete `venv` and repeat step 2.
 
-## 6. Try it (optional)
+---
 
-From a Kali VM, attack the Windows PC. Find the PC's IP with `ipconfig`, and check `ping <windows-ip>` works first. Only test machines you own.
+## Try it: attack your own PC (optional)
+
+Use a Kali Linux VM on the same network. Find your PC's IP with `ipconfig` and make sure `ping <windows-ip>` works. **Only test machines you own.**
 
 ```bash
 # Port scan
@@ -131,7 +105,7 @@ nmap -sS -p 1-1000 <windows-ip>
 sudo hping3 -S --flood -p 80 <windows-ip>
 ```
 
-For brute force, send many concurrent connection attempts to one login port (for example 22) on the PC. Wait a few seconds, refresh the dashboard, and click **Explain** on an alert.
+For brute force, send many concurrent connection attempts to one login port (for example 22). Wait a few seconds, press **Refresh live feed**, open the matching tab and click **Generate AI Explanation**.
 
 | Attack | Detector rule | Expected explanation |
 |---|---|---|
@@ -139,10 +113,16 @@ For brute force, send many concurrent connection attempts to one login port (for
 | Brute force | 15+ attempts to one login port in 10 s | T1110 |
 | DoS flood | 200+ flow records from one source in 10 s | T1498 / T1498.001 |
 
-## 7. Models and data
+---
 
-- Trained models are in `models/saved/`. If they are not in the repository (large files), download them from the link provided by the author and place them in that folder.
-- The CICIDS2017 dataset is **not** included. It is only needed for the **Historical** tab and for retraining. Download the MachineLearningCSV files from the [CIC website](https://www.unb.ca/cic/datasets/ids-2017.html) into `dataset/`, then:
+## What works out of the box
+
+- **Live Monitor tab:** real-time capture, ML detection, the three rule detectors and AI explanations.
+- **Pre-trained models** are included, so no training is needed.
+
+## What is not included
+
+- **The CICIDS2017 dataset** (too large). The **Historical Analysis** tab shows a notice instead of crashing. It is only needed for that tab and for retraining. To use it, download the *MachineLearningCSV* files from the [CIC website](https://www.unb.ca/cic/datasets/ids-2017.html) into `dataset/`, then run:
 
 ```powershell
 python preprocessing\clean_dataset.py
@@ -151,42 +131,57 @@ python models\xgboost_model.py
 python models\svm.py
 ```
 
-## 8. Project structure
+- **The packaged `.exe`** (`dist/`). It is built locally and is not stored in the repository.
+- **Your `.env` file**. Each user adds their own key.
+
+---
+
+## Project structure
 
 ```
 preprocessing/   clean_dataset.py          merge and clean CICIDS2017
-models/          training scripts, saved/  Random Forest, XGBoost, SVM, ensemble
+models/          training scripts, saved/  Random Forest, XGBoost, SVM (+ pre-trained files)
 packet_capture/  capture_v2.py             live capture -> dataset/live_flows.csv
 detection/       scan / bruteforce / dos   aggregate rule detectors
 rag/             documents, retrieve.py    MITRE ATT&CK knowledge base
 llm/             explain.py                grounded LLM explanation
-dashboard/       app.py                    Streamlit dashboard
+dashboard/       app.py                    Streamlit dashboard (Observatory)
+setup.bat        one-time installer
+run.bat          starts capture + dashboard
 ```
 
-## 9. Troubleshooting
+---
+
+## Troubleshooting
 
 | Problem | Fix |
 |---|---|
 | No live flows appear | Capture is not running as Administrator, or Npcap is not installed |
-| Dashboard shows nothing | Wait a few seconds after starting an attack, then refresh |
-| `401 Invalid API Key` | Wrong or expired key in `.env`. Create a new one at Groq |
-| Explanation is empty or fails | Check internet and `.env`. Restart Streamlit after editing `.env` |
-| `Port 8501 is already in use` | Close the old Streamlit window or use `--server.port 8502` |
-| Chroma folder cannot be deleted | Stop Streamlit first, then delete `rag/chroma_db` |
+| Dashboard says `live_flows.csv not found` | Start `capture_v2.py` first and wait for some traffic |
+| Dashboard looks empty after an attack | Wait a few seconds, then press **Refresh live feed** |
+| `Fatal error in launcher` for `streamlit.exe` | The venv was moved or renamed. Delete `venv` and recreate it, or run `.\venv\Scripts\python.exe -m streamlit run dashboard\app.py` |
+| `401 Invalid API Key` | Wrong or expired key in `.env`. Create a new one at Groq and restart the dashboard |
+| Explanation is empty or fails | Check your internet connection and `.env`. Restart the dashboard after editing `.env` |
+| `Port 8501 is already in use` | Close the old dashboard window or use `--server.port 8502` |
+| Chroma folder cannot be deleted | Stop the dashboard first, then delete `rag/chroma_db` and rebuild |
 | First run is slow | The embedding model is downloading once |
+| `ModuleNotFoundError` | The venv is not active. Activate it, or reinstall with `pip install -r requirements.txt` |
 
-## 10. Known limitations
+---
+
+## Known limitations
 
 - Live evaluation covers three attack types on one network.
 - Rule thresholds were tuned on the same test scenarios, so rule results are optimistic.
 - Slow or distributed attacks can stay under the 10-second window thresholds.
 - The knowledge base covers T1046, T1110 and T1498 only.
-- Capture only sees traffic that reaches the PC's own interfaces, not other devices on the network.
+- Capture only sees traffic that reaches the PC's own network interfaces, not other devices on the network.
+- Windows only for live capture.
 
-## 11. Responsible use
+## Responsible use
 
-For learning and for networks you own or have written permission to test. Do not run scans or floods against anyone else's systems.
+For learning, and for networks you own or have written permission to test. Do not run scans or floods against anyone else's systems.
 
 ## Author
 
-[Your Name], [Institution]. Contact: [email]
+Name : Riddha Ghosh Dastidar, Institution : KIIT, Contact: riddha2019@gmail.com
